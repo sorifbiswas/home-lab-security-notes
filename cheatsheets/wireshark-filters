@@ -1,0 +1,46 @@
+# Wireshark Filters Cheatsheet
+
+## Display filters (applied after capture)
+| Goal | Filter |
+|------|--------|
+| One host | `ip.addr == 192.168.56.20` |
+| Source or destination only | `ip.src == 192.168.56.10`, `ip.dst == 192.168.56.20` |
+| One port | `tcp.port == 80` |
+| Protocol | `dns`, `http`, `icmp`, `tls`, `ssh`, `arp` |
+| Combine | `ip.addr == 192.168.56.20 && tcp.port == 22` |
+| Either | `dns \|\| icmp` |
+| Exclude noise | `!arp && !mdns` |
+| TCP SYN (start of connection) | `tcp.flags.syn == 1 && tcp.flags.ack == 0` |
+| TCP resets (closed ports, dropped connections) | `tcp.flags.reset == 1` |
+| Retransmissions (network problems) | `tcp.analysis.retransmission` |
+| DNS queries for one name | `dns.qry.name contains "example"` |
+| HTTP requests | `http.request` |
+| Text inside packets | `frame contains "text"` |
+
+## Capture filters (BPF, set before capturing)
+| Goal | Filter |
+|------|--------|
+| One host | `host 192.168.56.20` |
+| One port | `port 53` |
+| A network | `net 192.168.56.0/24` |
+| Only TCP | `tcp` |
+| Not SSH (when capturing over SSH) | `not port 22` |
+
+## Useful actions
+| Action | How |
+|--------|-----|
+| Follow a conversation | Right-click a packet, **Follow > TCP Stream** |
+| Statistics | **Statistics > Conversations** and **Protocol Hierarchy** |
+| Export objects | **File > Export Objects > HTTP** |
+| Save only what I need | **File > Export Specified Packets** |
+
+## Defender patterns to recognise
+| Pattern | Suggests |
+|---------|----------|
+| Many SYN packets to many ports from one source | A port scan |
+| Many failed connections or resets | Scanning or blocked traffic |
+| Large outbound transfer to an unknown address | Possible data leaving |
+| DNS queries for long random-looking names | Possible malware or tunnelling |
+| Passwords visible in HTTP, FTP, Telnet streams | Missing encryption: fix it |
+
+Captures can contain private data. Keep `.pcap` files out of Git (they are in `.gitignore`).
